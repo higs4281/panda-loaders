@@ -7,6 +7,7 @@ The script is local to Florida voter data but could be adapted.
 It loads a directory of raw Florida county voter registration files via Panda's api.
 
 Caveat: this is a slow web-dependent process, but has these advantages if you're not in a hurry:
+
      -- it sidesteps memory issues that you can encounter in the Panda loading gui
      -- it only uses Panda index space
      -- it results in a dataset with external_id values, which makes them editable via the api
