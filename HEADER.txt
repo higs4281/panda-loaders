@@ -1,0 +1,1 @@
+county	voter_ID	lname	suffix	fname	mname	suppress	addr1	addr2	city	state	zip	Mail1	Mail2	Mail3	Mailcity	MailingState	MailZip	MailCountry	gender	race	birthdate	RegDate	party	Precinct	PrecinctGroup	PrecinctSplit	PrecinctSuffix	VoterStatus	CongressionalDistrict	HouseDistrict	SenateDistrict	CountyCommissionDistrict	SchoolBoardDistrict	areacode	phone	extension	email

@@ -1,14 +1,3 @@
-""" script to load a directory of florida county voter registration files via panda's api
-     it's a slow web-dependent process, but has these advantages if you're not in a hurry:
-         it sidesteps memory issues that you can encounter in the panda loading gui
-         it only uses panda index space
-         it results in a dataset with external_id values, which makes them editable via the api
-     dependencies: csvkit, requests, (for which you could substitute csv and urllib)
-         it also uses django's slugify function, but it's a convenience
-    the script works on a local directory structure 
-    it assumes the data is from the current year and uses a local file called HEADER.txt that matches the raw files, which have no headers
-
-"""
 import datetime
 import os, sys, json
 from subprocess import call
