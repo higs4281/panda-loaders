@@ -13,7 +13,7 @@ But it has these advantages, if you're not in a hurry:
      • it only uses PANDA index space
      • it results in a dataset with external_id values, which makes them editable via the api
 
-Dependencies are csvkit and requests. It also uses Django's slugify function, but it's a convenience.
+Dependencies are csvkit and requests. It also uses Django's slugify function.
 
 The script works on a local directory structure and assumes the data is from the current year.
 It also uses a tab-delimited file called HEADER.txt that matches the raw files, which have no headers.
