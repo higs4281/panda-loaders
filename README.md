@@ -15,4 +15,4 @@ Caveat: this is a slow web-dependent process, but has these advantages if you're
 Dependencies are csvkit and requests, for which you could substitute csv and urllib. It also uses Django's slugify function, but it's a convenience.
 
 The script works on a local directory structure and assumes the data is from the current year.
-It also uses a file called HEADER.txt that matches the raw files, which have no headers.
+It also uses a tab-delimited file called HEADER.txt that matches the raw files, which have no headers.
