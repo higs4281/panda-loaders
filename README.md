@@ -4,7 +4,7 @@ panda-voters
 This script loads voter registration data into a <a href="http://pandaproject.net/">PANDA</a> instance via api.
 The script is local to Florida voter data but could be adapted.
 
-It starts with a directory of raw county voter registration files, preps them with csvkit and ships them to PANDA.
+It starts with a directory of raw county voter registration files that have three-letter county prefixes, preps them with csvkit and ships them to PANDA.
 
 Caveat: this is a slow web-dependent process that loads about 250K rows an hour.
 But it has these advantages, if you're not in a hurry:
