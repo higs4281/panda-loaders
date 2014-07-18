@@ -11,7 +11,7 @@ But it has these advantages, if you're not in a hurry:
 
      • it sidesteps memory issues that you can encounter in PANDA's loading GUI
      • it only uses PANDA index space
-     • it results in a dataset with external_id values, which makes them editable via the api
+     • it results in a dataset with external_id values, which makes rows editable via the api
 
 Dependencies are csvkit and requests. It also uses Django's slugify function.
 
