@@ -7,11 +7,9 @@ python -i load_county_voters.python
 # prep a raw county file
 prep('BRE_20140703.txt')
 
-# uncomment the county in to_harvest:
-
-    'BRE': 'Brevard'
-
-# run 
+# push to panda:
+export_all()
+# this will push about 250K rows an hour, so give it time to run
 
 """
 
