@@ -1,15 +1,26 @@
 """
-usage:
-to load a single county, load script:
+USAGE
+====
 
-python -i load_county_voters.python
+to load a single county, load the script:
 
-# prep a raw county file
-prep('BRE_20140703.txt')
+    cd /opt/django-projects/standalones/panda/scripts
+    python -i load_county_voters.python
 
-# push to panda:
-export_all()
-# this will push about 250K rows an hour, so give it time to run
+to prep a raw county file (in this case, Brevard):
+
+    prep('BRE_20140703.txt')
+
+to push to panda:
+ 
+    export_all()
+
+this will push about 250K rows an hour, so give it time to run
+
+to load all your raw files in one go (this will take a long time):
+
+    prep_files()
+    export_all()
 
 """
 
