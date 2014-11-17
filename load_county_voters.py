@@ -302,7 +302,10 @@ def export_county(countyfile):
             panda_put(data_url, json.dumps(put_data))
             putcount += len(put_data['objects'])
             put_data['objects'] = []
-        print "pushed %s rows to panda dataset %s; process took %s" % (putcount, name, (datetime.datetime.now()-putstart))
+        print "pushed %s rows to panda dataset %s; process took %s" % (putcount, 
+                                                                        name, 
+                                                                        (datetime.datetime.now()-putstart)
+                                                                        )
         return putcount
 
 def export_all():
