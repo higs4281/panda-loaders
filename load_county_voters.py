@@ -1,3 +1,20 @@
+"""
+usage:
+to load a single county, load script:
+
+python -i load_county_voters.python
+
+# prep a raw county file
+prep('BRE_20140703.txt')
+
+# uncomment the county in to_harvest:
+
+    'BRE': 'Brevard'
+
+# run 
+
+"""
+
 import datetime
 import os, sys, json
 from subprocess import call
@@ -95,7 +112,9 @@ partyd = {#updated for 2014
     'JPF': "Justice",
     'PSL': "Socialism and Liberation",
     }    
-to_harvest = {
+
+# counties loaded in panda:
+    # 'BRE': 'Brevard'
     # 'CIT': 'Citrus',
     # 'HER': 'Hernando',
     # 'HIL': 'Hillsborough',
@@ -105,9 +124,78 @@ to_harvest = {
     # 'OSC': 'Osceola',
     # 'PAS': 'Pasco',
     # 'PIN': 'Pinellas',
-    'POL': 'Polk',
-    'SAR': 'Sarasota',
-    'SUM': 'Sumter'
+    # 'POL': 'Polk',
+    # 'SAR': 'Sarasota',
+    # 'SUM': 'Sumter'
+
+to_harvest = {
+    "ALA": "Alachua"
+    "BAK": "Baker"
+    "BAY": "Bay"
+    "BRA": "Bradford"
+    "BRE": "Brevard"
+    "BRO": "Broward"
+    "CAL": "Calhoun"
+    "CHA": "Charlotte"
+    "CIT": "Citrus"
+    "CLA": "Clay"
+    "CLL": "Collier"
+    "CLM": "Columbia"
+    "DAD": "Miami-Dade"
+    "DES": "Desoto"
+    "DIX": "Dixie"
+    "DUV": "Duval"
+    "ESC": "Escambia"
+    "FLA": "Flagler"
+    "FRA": "Franklin"
+    "GAD": "Gadsden"
+    "GIL": "Gilchrist"
+    "GLA": "Glades"
+    "GUL": "Gulf"
+    "HAM": "Hamilton"
+    "HAR": "Hardee"
+    "HEN": "Hendry"
+    "HER": "Hernando"
+    "HIG": "Highlands"
+    "HIL": "Hillsborough"
+    "HOL": "Holmes"
+    "IND": "Indian River"
+    "JAC": "Jackson"
+    "JEF": "Jefferson"
+    "LAF": "Lafayette"
+    "LAK": "Lake"
+    "LEE": "Lee"
+    "LEO": "Leon"
+    "LEV": "Levy"
+    "LIB": "Liberty"
+    "MAD": "Madison"
+    "MAN": "Manatee"
+    "MRN": "Marion"
+    "MRT": "Martin"
+    "MON": "Monroe"
+    "NAS": "Nassau"
+    "OKA": "Okaloosa"
+    "OKE": "Okeechobee"
+    "ORA": "Orange"
+    "OSC": "Osceola"
+    "PAL": "PalmBeach"
+    "PAS": "Pasco"
+    "PIN": "Pinellas"
+    "POL": "Polk"
+    "PUT": "Putnam"
+    "SAN": "SantaRosa"
+    "SAR": "Sarasota"
+    "SEM": "Seminole"
+    "STJ": "St.Johns"
+    "STL": "St.Lucie"
+    "SUM": "Sumter"
+    "SUW": "Suwannee"
+    "TAY": "Taylor"
+    "UNI": "Union"
+    "VOL": "Volusia"
+    "WAK": "Wakulla"
+    "WAL": "Walton"
+    "WAS": "Washington"
     }
 columns = "3,5,6,4,8,9,10,12,20,21,22,24,35,36,38,2"
 
@@ -158,7 +246,7 @@ def prep(filename):
             writer.writerow(header)
             for entry in biglist:
                 writer.writerow(entry)
-    print "%s ready for loading; prepping took %s" % (loadfile (datetime.datetime.now-prepstart))
+    print "%s ready for loading; prepping took %s" % (loadfile, (datetime.datetime.now()-prepstart))
 
 def no_dotfiles(path):
     for f in os.listdir(path):
@@ -207,6 +295,8 @@ def export_county(countyfile):
                     print 'Updating %i rows' % len(put_data['objects'])
                     panda_put(data_url, json.dumps(put_data))
                     put_data['objects'] = []
+                if putcount % 10000 == 0:
+                    print "loaded so far: %s" % putcount
         if put_data['objects']:
             print 'Updating %i rows' % len(put_data['objects'])
             panda_put(data_url, json.dumps(put_data))
