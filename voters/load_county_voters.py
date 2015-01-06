@@ -44,7 +44,26 @@ rawbase = "%s/VoterExtract" % yearbase
 temp = "%s/temp" % yearbase
 prepbase = "%s/prep" % yearbase
 loadbase = "%s/load" % yearbase
+loaded = "%s/loaded" % yearbase
 rawheader = "%s/HEADER.txt" % base
+
+def prep_directories():
+    """
+    make sure directories exist and are empty
+    """
+    for each in [yearbase, rawbase, temp, prepbase, loadbase, loaded]:
+        if not os.path.isdir(each):
+            os.mkdir(each)
+    for DIR in [temp, prepbase]:
+        for FILE in os.listdir(DIR):
+            call('rm %s/%s' % (DIR, FILE), shell=True)
+        for FILE in os.listdir(loadbase):
+            orig = "%s/%s" % (loadbase, FILE)
+            call('mv %s %s' % (orig, loaded), shell=True)
+    print "directories prepped"
+
+print "prepping directories"
+prep_directories()
 
 # vars stored in the env
 PANDA_AUTH_PARAMS = {
@@ -138,72 +157,72 @@ partyd = {#updated for 2014
     # 'SUM': 'Sumter'
 
 to_harvest = {
-    "ALA": "Alachua"
-    "BAK": "Baker"
-    "BAY": "Bay"
-    "BRA": "Bradford"
-    "BRE": "Brevard"
-    "BRO": "Broward"
-    "CAL": "Calhoun"
-    "CHA": "Charlotte"
-    "CIT": "Citrus"
-    "CLA": "Clay"
-    "CLL": "Collier"
-    "CLM": "Columbia"
-    "DAD": "Miami-Dade"
-    "DES": "Desoto"
-    "DIX": "Dixie"
-    "DUV": "Duval"
-    "ESC": "Escambia"
-    "FLA": "Flagler"
-    "FRA": "Franklin"
-    "GAD": "Gadsden"
-    "GIL": "Gilchrist"
-    "GLA": "Glades"
-    "GUL": "Gulf"
-    "HAM": "Hamilton"
-    "HAR": "Hardee"
-    "HEN": "Hendry"
-    "HER": "Hernando"
-    "HIG": "Highlands"
-    "HIL": "Hillsborough"
-    "HOL": "Holmes"
-    "IND": "Indian River"
-    "JAC": "Jackson"
-    "JEF": "Jefferson"
-    "LAF": "Lafayette"
-    "LAK": "Lake"
-    "LEE": "Lee"
-    "LEO": "Leon"
-    "LEV": "Levy"
-    "LIB": "Liberty"
-    "MAD": "Madison"
-    "MAN": "Manatee"
-    "MRN": "Marion"
-    "MRT": "Martin"
-    "MON": "Monroe"
-    "NAS": "Nassau"
-    "OKA": "Okaloosa"
-    "OKE": "Okeechobee"
-    "ORA": "Orange"
-    "OSC": "Osceola"
-    "PAL": "PalmBeach"
-    "PAS": "Pasco"
-    "PIN": "Pinellas"
-    "POL": "Polk"
-    "PUT": "Putnam"
-    "SAN": "SantaRosa"
-    "SAR": "Sarasota"
-    "SEM": "Seminole"
-    "STJ": "St.Johns"
-    "STL": "St.Lucie"
-    "SUM": "Sumter"
-    "SUW": "Suwannee"
-    "TAY": "Taylor"
-    "UNI": "Union"
-    "VOL": "Volusia"
-    "WAK": "Wakulla"
-    "WAL": "Walton"
+    "ALA": "Alachua",
+    "BAK": "Baker",
+    "BAY": "Bay",
+    "BRA": "Bradford",
+    "BRE": "Brevard",
+    "BRO": "Broward",
+    "CAL": "Calhoun",
+    "CHA": "Charlotte",
+    "CIT": "Citrus",
+    "CLA": "Clay",
+    "CLL": "Collier",
+    "CLM": "Columbia",
+    "DAD": "Miami-Dade",
+    "DES": "Desoto",
+    "DIX": "Dixie",
+    "DUV": "Duval",
+    "ESC": "Escambia",
+    "FLA": "Flagler",
+    "FRA": "Franklin",
+    "GAD": "Gadsden",
+    "GIL": "Gilchrist",
+    "GLA": "Glades",
+    "GUL": "Gulf",
+    "HAM": "Hamilton",
+    "HAR": "Hardee",
+    "HEN": "Hendry",
+    "HER": "Hernando",
+    "HIG": "Highlands",
+    "HIL": "Hillsborough",
+    "HOL": "Holmes",
+    "IND": "Indian River",
+    "JAC": "Jackson",
+    "JEF": "Jefferson",
+    "LAF": "Lafayette",
+    "LAK": "Lake",
+    "LEE": "Lee",
+    "LEO": "Leon",
+    "LEV": "Levy",
+    "LIB": "Liberty",
+    "MAD": "Madison",
+    "MAN": "Manatee",
+    "MRN": "Marion",
+    "MRT": "Martin",
+    "MON": "Monroe",
+    "NAS": "Nassau",
+    "OKA": "Okaloosa",
+    "OKE": "Okeechobee",
+    "ORA": "Orange",
+    "OSC": "Osceola",
+    "PAL": "PalmBeach",
+    "PAS": "Pasco",
+    "PIN": "Pinellas",
+    "POL": "Polk",
+    "PUT": "Putnam",
+    "SAN": "SantaRosa",
+    "SAR": "Sarasota",
+    "SEM": "Seminole",
+    "STJ": "St.Johns",
+    "STL": "St.Lucie",
+    "SUM": "Sumter",
+    "SUW": "Suwannee",
+    "TAY": "Taylor",
+    "UNI": "Union",
+    "VOL": "Volusia",
+    "WAK": "Wakulla",
+    "WAL": "Walton",
     "WAS": "Washington"
     }
 columns = "3,5,6,4,8,9,10,12,20,21,22,24,35,36,38,2"
