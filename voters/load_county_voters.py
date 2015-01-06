@@ -60,10 +60,10 @@ def prep_directories():
         for FILE in os.listdir(loadbase):
             orig = "%s/%s" % (loadbase, FILE)
             call('mv %s %s' % (orig, loaded), shell=True)
-    print "directories prepped"
 
 print "prepping directories"
 prep_directories()
+print "directories prepped"
 
 # vars stored in the env
 PANDA_AUTH_PARAMS = {
@@ -344,7 +344,4 @@ def export_all():
             continue
         else:
             export_county(countyfile)
-
-
-
-
+    prep_directories()
