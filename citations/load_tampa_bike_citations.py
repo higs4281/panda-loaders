@@ -228,7 +228,19 @@ def load_tickets():
                                                                     (datetime.datetime.now()-runv.starter)
                                                                     )
 
-# uncomment the following lines if you want the script to run automatically when called with 'python load_tampa_bike_citations.py'
+# if you want the script to run automatically,
+# uncomment the lines starting with 'if __name__ ...'
+# you can optionally put a csv file in /data 
+# and pass its name to the script like so:
+#        python load_tampa_bike_citations.py FILENAME
+#
+#
 # if __name__ == "__main__":
+#     try:
+#         param = sys.argv[1]
+#     except:
+#         pass
+#     else:
+#         infile = "/data/%s" % param
 #     if initialize_dataset():
 #         load_tickets()
