@@ -186,15 +186,18 @@ def initialize_dataset():
 infile = "/data/AllBikeViolations.csv"
 runv = RunVars()
 def load_tickets():
-    with open(infile, 'r') as f:
-        reader = cdr(f)
-        for row in reader:
-            runv.processed += 1
-            PK = row['ID']
-            ADDR = ", ".join([ row[ky] for ky in ['Address Line 1', 'Address Line 2', 'City', 'State', 'Zip Code'] if row[ky] ])
-            DL = "%s (%s)" % (row['Driver License Number'], row['Driver License State'])
-            # TAG = "%s (%s)" % (row['Tag Number'], row['Tag State'])
-            put_data['objects'].append({
+    if not os.path.isfile(infile):
+        print "couldn't find %s" % infile
+    else:
+        with open(infile, 'r') as f:
+            reader = cdr(f)
+            for row in reader:
+                runv.processed += 1
+                PK = row['ID']
+                ADDR = ", ".join([ row[ky] for ky in ['Address Line 1', 'Address Line 2', 'City', 'State', 'Zip Code'] if row[ky] ])    
+                DL = "%s (%s)" % (row['Driver License Number'], row['Driver License State'])
+                # TAG = "%s (%s)" % (row['Tag Number'], row['Tag State'])
+                put_data['objects'].append({
                 'external_id': unicode(PK),
                 'data': [
                     row['Last Name'],
@@ -211,18 +214,18 @@ def load_tickets():
                     row['Law Enf Agency Name'],
                     row['Law Enf Officer Name']
                     ]
-            })
-            if len(put_data['objects']) == 1000:
-                runv.created += 1000
-                print "shipped %s rows" % runv.created
-                panda_put(data_url, json.dumps(put_data))
-                put_data['objects'] = []
-    if put_data['objects']:
-        print 'shipping final %i rows' % len(put_data['objects'])
-        panda_put(data_url, json.dumps(put_data))
-        runv.created += len(put_data['objects'])
-        put_data['objects'] = []
-    print "pushed %s rows to panda dataset %s; process took %s" % (
+                })
+                if len(put_data['objects']) == 1000:
+                    runv.created += 1000
+                    print "shipped %s rows" % runv.created
+                    panda_put(data_url, json.dumps(put_data))
+                    put_data['objects'] = []
+        if put_data['objects']:
+            print 'shipping final %i rows' % len(put_data['objects'])
+            panda_put(data_url, json.dumps(put_data))
+            runv.created += len(put_data['objects'])
+            put_data['objects'] = []
+        print "pushed %s rows to panda dataset %s; process took %s" % (
                                                                     runv.created, 
                                                                     dataset_name, 
                                                                     (datetime.datetime.now()-runv.starter)
@@ -235,12 +238,12 @@ def load_tickets():
 #        python load_tampa_bike_citations.py FILENAME
 #
 #
-# if __name__ == "__main__":
-#     try:
-#         param = sys.argv[1]
-#     except:
-#         pass
-#     else:
-#         infile = "/data/%s" % param
-#     if initialize_dataset():
-#         load_tickets()
+if __name__ == "__main__":
+    try:
+        param = sys.argv[1]
+    except:
+        pass
+    else:
+        infile = "/data/%s" % param
+    if initialize_dataset():
+        load_tickets()
