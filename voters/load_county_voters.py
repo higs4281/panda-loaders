@@ -5,7 +5,7 @@ USAGE
 to load a single county, load the script:
 
     cd /opt/django-projects/standalones/panda/scripts
-    python -i load_county_voters.python
+    python -i load_county_voters.py
 
 to prep a raw county file (in this case, Brevard):
 
