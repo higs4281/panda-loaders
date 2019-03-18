@@ -6,11 +6,16 @@ import sys
 import subprocess
 
 import requests
+from dateutil import parser
 from django.template.defaultfilters import slugify
 
-# SET DATA_DATE to the date on the voter disk
-DATA_DATE = datetime.datetime(2019, 3, 12).date()
-YEAR = DATA_DATE.year
+
+# SET VOTER_DATA_DATE to the date on the voter disk
+VOTER_DATA_DATE = datetime.datetime(2019, 4, 12).date()
+if os.getenv('VOTER_DATA_DATE'):
+    VOTER_DATA_DATE = parser.parse(os.getenv('VOTER_DATA_DATE')).date()
+
+YEAR = VOTER_DATA_DATE.year
 
 # PANDA VARS
 PANDA_AUTH_PARAMS = {
@@ -37,7 +42,7 @@ RAWHEADER = "{}/HEADER.txt".format(BASE)  # tab-delimited original header
 
 
 def get_postgres_db_name():
-    return "voter_data_{}".format(DATA_DATE).replace('-', '_')
+    return "voter_data_{}".format(VOTER_DATA_DATE).replace('-', '_')
 
 
 def prep_directories():
@@ -335,7 +340,7 @@ def load_postgres():
             'psql {} -f create_voter_tables.sql'.format(db), shell=True)
         set_date_command = (
             'echo "ALTER TABLE voters_voter ALTER COLUMN source_date '
-            'SET DEFAULT \'{}\';" | psql {}'.format(DATA_DATE, db))
+            'SET DEFAULT \'{}\';" | psql {}'.format(VOTER_DATA_DATE, db))
         subprocess.run(set_date_command, shell=True)
     for each in no_dotfiles(LOADBASE):
         slug = each[:3]
@@ -375,7 +380,7 @@ def export_county(countyfile):
         # initialize new dataset
         dataset = {
             'name': name,
-            'description': 'Data from {}'.format(DATA_DATE),
+            'description': 'Data from {}'.format(VOTER_DATA_DATE),
             'categories': ['/api/1.0/category/all-dob/',
                            '/api/1.0/category/voters/']
         }
@@ -413,12 +418,6 @@ def export_all():
     """Export all the county files in LOADBASE director."""
     for countyfile in no_dotfiles(LOADBASE):
         export_county(countyfile)
-
-
-def run(*args):
-    """Run prep to process a single voter file."""
-    voter_file = args(0)
-    prep(voter_file)
 
 
 if __name__ == "__main__":

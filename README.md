@@ -11,6 +11,7 @@ If you use the Postgres option, you'll get an indexed database ready to be plugg
 As before, the voter script is tailored to Florida but could be adapted. It requires:
 - County voter registration files, which in Florida are available from the state's Division of Elections.
 - A local environment with Python3.6+ and, for the db option, Postgres10+.
+- A VOTER_DATA_DATE value in YYYY-MM-DD form, provided by an environment variable of that name or by manually editing the script's global variable. This is used to name the database and to provide default source_date in the voters_voter table.
 
 With raw voter files in place, you can run the voter script with `python load_county_voters` plus one of three arguments:
 1. `prep_files`: This processes raw county files and preps them for use in PANDA or in a database.
