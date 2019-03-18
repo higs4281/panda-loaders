@@ -1,41 +1,28 @@
-"""
-script to load spreadsheet of tampa bicycle citations into panda
-"""
-
-import os, sys
-import json
-import requests
+from __future__ import unicode_literals
+import csv
 import datetime
+import json
+import os
+import sys
+
+import requests
 from dateutil import parser
 from django.template.defaultfilters import slugify
-from csvkit import CSVKitDictReader as cdr
 
-today = datetime.datetime.today().date()
-def parse_dob(value):
-    turndate = datetime.date(2004, 1, 1)# allow for any citees as young as 10
-    try:
-        DOB = parser.parse(value.strip()).date()
-    except:
-        print "couldn't parse dob %s" % value
-        return None
-    else:
-        if DOB == today:
-            return None
-        elif DOB > turndate:
-            return DOB.replace(year=DOB.year-100)
-        else:
-            return DOB
 
 class RunVars:
-    """class to track run variables"""
+    """Track runtime variables."""
+
     def __init__(self):
-        self.starter = datetime.datetime.now()
+        self.starter = None
         self.processed = 0
         self.updated = 0
         self.created = 0
         self.passed = 0
 
 # panda params
+RUNVARS = RunVars()
+RUNVARS.starter = datetime.datetime.now()
 PANDA_BASE = os.getenv('PANDA_BASE')
 PANDA_AUTH_PARAMS = {
     'email': os.getenv('PANDA_USER'),
@@ -46,42 +33,45 @@ PANDA_BULK_UPDATE_SIZE = 1000
 PANDA_API = '%s/api/1.0' % PANDA_BASE
 PANDA_ALL_DATA_URL = "%s/data/" % PANDA_API
 PANDA_DATASET_BASE = "%s/dataset" % PANDA_API
-# PANDA_VOTERS_SUFFIX = '&category=voters'
-# PANDA_NEWSMAKERS_BASE = '%s/arrest-watchlist' % PANDA_DATASET_BASE
-# PANDA_NEWSMAKERS_DATA_URL = '%s/data/' % PANDA_NEWSMAKERS_BASE
+DATASET_NAME = "Tampa bicycle citations 2003 to 2014"
+DATASET_SLUG = slugify(DATASET_NAME)
+DATASET_URL = '{}/{}/'.format(PANDA_DATASET_BASE, DATASET_SLUG)
+DATA_URL = '{}data/'.format(DATASET_URL)
+
+
+def parse_dob(value):
+    turndate = datetime.date(2004, 1, 1)  # allow for any citees as young as 10
+    try:
+        dob = parser.parse(value.strip()).date()
+    except Exception as e:
+        print("Couldn't parse dob {} ({})".format(value, e))
+        return None
+    else:
+        if dob == datetime.date.today():
+            return None
+        elif dob > turndate:
+            return dob.replace(year=dob.year - 100)
+        else:
+            return dob
+
 
 def panda_get(url, params={}):
     params.update(PANDA_AUTH_PARAMS)
     return requests.get(url, params=params)
 
+
 def panda_put(url, data, params={}):
     params.update(PANDA_AUTH_PARAMS)
-    return requests.put(url, data, params=params, headers={ 'Content-Type': 'application/json' })
+    return requests.put(
+        url, data,
+        params=params,
+        headers={'Content-Type': 'application/json'})
+
 
 def panda_delete(url, params={}):
     params.update(PANDA_AUTH_PARAMS)
     return requests.delete(url, params=params)
 
-def get_exid(query):
-    dat = json.loads(panda_get(PANDA_NEWSMAKERS_DATA_URL, params={'q': query}).text)
-    return dat['objects'][0]['external_id']
-
-def get_uri(query):
-    dat = json.loads(panda_get(PANDA_NEWSMAKERS_DATA_URL, params={'q': query}).text)
-    return dat['objects'][0]['resource_uri']
-
-def update_panda(put_data):
-    itemcount = len(put_data['objects'])
-    if itemcount <= PANDA_BULK_UPDATE_SIZE:
-        panda_put(PANDA_NEWSMAKERS_DATA_URL, json.dumps(put_data))
-        print "sent %s items to panda" % itemcount
-        return itemcount
-    else:
-        print "too many objects to send at once -- found %s" % itemcount
-        return None
-
-# Panda loading vessel
-put_data = {'objects': []}
 
 """
 RAW HEADINGS
@@ -127,123 +117,134 @@ RAW HEADINGS
  40: Offense Year
  41: Age
 
-NOTE: can clean up the BOM (byte order mark) character, and many other encoding poblems with ftfy's fix_text function, like so:
+NOTE: can clean up the BOM (byte order mark) character,
+and many other encoding poblems, with ftfy's fix_text function, like so:
+
 import ftfy
 bad_col = reader.fieldnames[0]
 bad_col
->> u'\ufeffUniform Case Number'
+>> '\ufeffUniform Case Number'
 
 ftfy.fix_text(bad_col)
->> u'Uniform Case Number'
+>> 'Uniform Case Number'
 
 desired-columns = '1,9,10,11,12,18,19,20,21,22,13,14,15,16,17,7,25,5,6'
 """
 
-# initiate Panda dataset -- only  run once
-headings = [
-    u'lname',
-    u'fname',
-    u'mname',
-    u'suffix',
-    u'DOB',
-    u'race',
-    u'gender',
-    u'DL',
-    u'address',
-    u'date',
-    u'statute',
-    u'agency',
-    u'officer'
-]
-dataset_name = u"Tampa bicycle citations 2003 to 2014"
-dataset_slug = slugify(dataset_name)
-dataset_url = '%s/%s/' % (PANDA_DATASET_BASE, dataset_slug)
-data_url = '%sdata/' % dataset_url
-dataset_dict = {
-    'name': dataset_name,
-    'description': 'A list of bicycle citations in Hillsborough County from 2003 to 2014.',
-    'categories': [u'/api/1.0/category/all-dob/', u'/api/1.0/category/crime/', u'/api/1.0/category/traffic-tickets/']
-}
+
 def initialize_dataset():
-    rtest = panda_get(dataset_url)
-    if rtest.status_code ==  404: # dataset doesn't exist, so we can create it
+    """Initiate a PANDA dataset for bicycle citations."""
+    output_headings = [
+        'lname',
+        'fname',
+        'mname',
+        'suffix',
+        'DOB',
+        'race',
+        'gender',
+        'DL',
+        'address',
+        'date',
+        'statute',
+        'agency',
+        'officer',
+    ]
+    dataset_dict = {
+        'name': DATASET_NAME,
+        'description': (
+            'A list of bicycle citations in Hillsborough County '
+            'from 2003 to 2014.'),
+        'categories': [
+            '/api/1.0/category/all-dob/',
+            '/api/1.0/category/crime/',
+            '/api/1.0/category/traffic-tickets/'
+        ]
+    }
+    rtest = panda_get(DATASET_URL)
+    if rtest.status_code == 404:  # Dataset doesn't exist, so we can create it
         response = panda_put(
-                dataset_url, 
-                json.dumps(dataset_dict), 
-                params={ 'columns': ','.join(headings), }
-                )
-        if response.status_code==201:
-            print "created panda dataset %s" % dataset_name
+            DATASET_URL,
+            json.dumps(dataset_dict),
+            params={'columns': ','.join(output_headings)}
+        )
+        if response.status_code == 201:
+            print("Created PANDA dataset {}".format(DATASET_NAME))
             return True
         else:
-            print "failed with status code %s and reason %s" % (response.status_code, response.reason)
+            print(
+                "Failed with status code {} and reason {}".format(
+                    response.status_code, response.reason))
             return False
     elif rtest.reason == 'OK':
         testd = json.loads(rtest.text)
-        print "dataset already created and has %s rows; can proceed with upload" % testd['row_count']
+        print(
+            "Dataset is already created and has {} rows; "
+            "We can proceed with upload.".format(testd['row_count']))
         return True
 
-infile = "/data/AllBikeViolations.csv"
-runv = RunVars()
-def load_tickets():
+
+def load_tickets(infile):
     if not os.path.isfile(infile):
-        print "couldn't find %s" % infile
-    else:
-        with open(infile, 'r') as f:
-            reader = cdr(f)
-            for row in reader:
-                runv.processed += 1
-                PK = row['ID']
-                ADDR = ", ".join([ row[ky] for ky in ['Address Line 1', 'Address Line 2', 'City', 'State', 'Zip Code'] if row[ky] ])    
-                DL = "%s (%s)" % (row['Driver License Number'], row['Driver License State'])
-                # TAG = "%s (%s)" % (row['Tag Number'], row['Tag State'])
-                put_data['objects'].append({
-                'external_id': unicode(PK),
+        print("Couldn't find the source file '{}'".format(infile))
+        return
+    address_rows = [
+        'Address Line 1', 'Address Line 2', 'City', 'State', 'Zip Code']
+    put_data = {'objects': []}
+    with open(infile, 'r') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            RUNVARS.processed += 1
+            pk = row['ID']
+            addr = ", ".join([row[key] for key in address_rows if row[key]])
+            dl = "{} ({})".format(
+                row['Driver License Number'], row['Driver License State'])
+            put_data['objects'].append({
+                'external_id': str(pk),
                 'data': [
                     row['Last Name'],
                     row['First Name'],
                     row['Middle Name'],
                     row['Suffix'],
                     row['Date Of Birth'],
-                    row['Race'].replace('White', 'Wh').replace('Black', 'Bl'),
+                    row['Race'].replace('White', 'Wh').replace(
+                        'Black', 'Bl'),
                     row['Gender'],
-                    DL,
-                    ADDR,
+                    dl,
+                    addr,
                     row['Offense Date'],
                     row['Statute Description'],
                     row['Law Enf Agency Name'],
                     row['Law Enf Officer Name']
-                    ]
-                })
-                if len(put_data['objects']) == 1000:
-                    runv.created += 1000
-                    print "shipped %s rows" % runv.created
-                    panda_put(data_url, json.dumps(put_data))
-                    put_data['objects'] = []
-        if put_data['objects']:
-            print 'shipping final %i rows' % len(put_data['objects'])
-            panda_put(data_url, json.dumps(put_data))
-            runv.created += len(put_data['objects'])
-            put_data['objects'] = []
-        print "pushed %s rows to panda dataset %s; process took %s" % (
-                                                                    runv.created, 
-                                                                    dataset_name, 
-                                                                    (datetime.datetime.now()-runv.starter)
-                                                                    )
+                ]
+            })
+            if len(put_data['objects']) == 1000:
+                RUNVARS.created += 1000
+                print("Shipped {} rows".format(RUNVARS.created))
+                panda_put(DATA_URL, json.dumps(put_data))
+                put_data['objects'] = []
+    if put_data['objects']:
+        print('Shipping final {} rows.'.format(len(put_data['objects'])))
+        panda_put(DATA_URL, json.dumps(put_data))
+        RUNVARS.created += len(put_data['objects'])
+        put_data['objects'] = []
+    print("pushed {} rows to panda dataset {}; process took {}".format(
+        RUNVARS.created,
+        DATASET_NAME,
+        (datetime.datetime.now() - RUNVARS.starter)))
 
-# if you want the script to run automatically,
-# uncomment the lines starting with 'if __name__ ...'
-# you can optionally put a csv file in /data 
-# and pass its name to the script like so:
-#        python load_tampa_bike_citations.py FILENAME
-#
-#
+
 if __name__ == "__main__":
-    try:
-        param = sys.argv[1]
-    except:
-        pass
+    """
+    Load a spreadsheet of Tampa bicycle citations into PANDA.
+
+    If no source file path is passed,
+    the default will be /data/AllBikeViolations.csv
+    """
+    if not initialize_dataset():
+        print("Couldn't initialize the PANDA dataset.")
+        sys.exit(1)
+    if len(sys.argv) > 1:
+        source = sys.argv[1]
     else:
-        infile = "/data/%s" % param
-    if initialize_dataset():
-        load_tickets()
+        source = "/data/AllBikeViolations.csv"
+    load_tickets(source)
