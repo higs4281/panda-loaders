@@ -12,13 +12,13 @@ As before, the voters scripts require some things:
 - County voter registration files, which are available from the Florida Division of Elections.
 - A local environment with Python3.6+ and Postgres10+ installed and running.
 
-If you are still using PANDA, the processes here use the PANDA API, which is slow but has advantages.
-    • It sidesteps memory issues that you can encounter in PANDA's loading GUI
-    • It only uses PANDA index space, rather than index space + file storage space.
-    • It results in a dataset with external_id values, which makes rows editable via the API
+With voter files in place, you can run the scripts with one of three arguments:
+1. `prep_files`, which processes raw county files and preps them for use in PANDA or in a database.
+2. `load_postgres`, which will create a postgres database, load it with any prepped files it finds and indexes the database.
+3. A file name for raw county voter file, such as `BAY_20190312.txt`. In This case, the script will just prep that file for subsequent use.
 
-The script works on a local directory structure and assumes the data is from the current year.
-It also uses a tab-delimited file called HEADER.txt that matches the raw files, which have no headers.
+### Local directories
+The script uses some local directories as it transforms the raw data, and it assumes data come from the current year.
 
 The assumed directory structure includes these folders:
 ```bash
@@ -29,4 +29,9 @@ prep
 temp
 ```
 
-The scripts will look for a local environment variable, `PANDA_LOADERS_BASE_DIR`, to use as the base directory for the above folders, and will default to `/tmp` if no var is found.
+The scripts will look for a local environment variable, `PANDA_LOADERS_BASE_DIR`, to use as the base directory for the above folders, and will default to `/tmp` as the base directory if no environment var is found.
+
+If you use the script to load data into a PANDA instance, the process uses PANDA's API, which is slow but has some advantages over PANDA's manual data upload process.
+• It sidesteps memory issues that you can encounter in PANDA's loading GUI
+• It only uses PANDA index space, rather than index space + file storage space.
+• It results in a dataset with external_id values, which makes rows editable via the API
