@@ -103,17 +103,11 @@ class Voter(models.Model):
         ordering = ['lname', 'fname']
 
     def __str__(self):
-        bits = [bit for bit
-                in [self.fname, self.mname, self.lname]
-                if bit]
+        bits = [bit for bit in [self.fname, self.mname, self.lname] if bit]
         name = ' '.join(bits)
         if self.suffix and SUFFIXES.get(self.suffix.upper()):
-            name += ', {}'.format(self.suffix)
-        if self.mname:
-            return "{} {} {}".format(
-                self.fname, self.mname, self.lname)
-        else:
-            return "{} {}".format(self.fname, self.lname)
+            name += ', {}'.format(SUFFIXES.get(self.suffix.upper()))
+        return name
 
     @property
     def county(self):
