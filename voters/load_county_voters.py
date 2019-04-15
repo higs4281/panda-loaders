@@ -2,16 +2,15 @@ import csv
 import datetime
 import json
 import os
-import sys
 import subprocess
+import sys
 
 import requests
 from dateutil import parser
 from django.template.defaultfilters import slugify
 
-
 # SET VOTER_DATA_DATE to the date on the voter disk
-VOTER_DATA_DATE = datetime.datetime(2019, 4, 12).date()
+VOTER_DATA_DATE = datetime.datetime(2019, 5, 12).date()
 if os.getenv('VOTER_DATA_DATE'):
     VOTER_DATA_DATE = parser.parse(os.getenv('VOTER_DATA_DATE')).date()
 
@@ -260,6 +259,11 @@ def stage_local_files(filename, slug):
     return prepfile
 
 
+def clean_processing_directories():
+    for directory in [TEMP, PREPBASE]:
+        subprocess.run("rm {}/*".format(directory), shell=True)
+
+
 def prep(filename):
     """
     Prepare a raw voter .txt file.
@@ -330,6 +334,7 @@ def prep_files():
             print(
                 "Prepping voter data for {}".format(ALL_FL_COUNTIES.get(slug)))
             prep(each)
+    clean_processing_directories()
 
 
 def load_postgres():
@@ -414,8 +419,8 @@ def export_county(countyfile):
         return putcount
 
 
-def export_all():
-    """Export all the county files in LOADBASE director."""
+def export_to_panda():
+    """Export any prepped county files in LOADBASE directory to PANDA."""
     for countyfile in no_dotfiles(LOADBASE):
         export_county(countyfile)
 
@@ -427,9 +432,19 @@ if __name__ == "__main__":
             prep_files()
         elif sys.argv[1] == 'load_postgres':
             load_postgres()
+        elif sys.argv[1] == 'export_to_panda':
+            export_to_panda()
         else:
             voter_file = sys.argv[1]
             print("Prepping voter data for {} County".format(
                 ALL_FL_COUNTIES.get(voter_file[:3]))
             )
             prep(voter_file)
+    else:
+        print(
+            "Please provide either a single voter file name to process, "
+            "or one of these arguments: \n"
+            "- prep_files (to prep any county files in /VoterDetail)\n"
+            "- load_postgres (to create and load county files to a database)\n"
+            "- export_to_panda (to export any prepped county files to PANDA)."
+        )

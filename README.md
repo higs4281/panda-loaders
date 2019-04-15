@@ -8,18 +8,26 @@ We're not giving up on PANDA, but for now, the voter script has been updated to 
 
 If you use the Postgres option, you'll get an indexed database ready to be plugged into a Django project, if desired. This repo is not a working Django project, but a Django model that can be used to hook up the Postgres voter db is included in `/voters/models.py`.
 
-As before, the voter script is tailored to Florida but could be adapted. It requires:
-- County voter registration files, which in Florida are available from the state's Division of Elections.
-- A local environment with Python3.6+ and, for the db option, Postgres10+.
-- A VOTER_DATA_DATE value in YYYY-MM-DD form, provided by an environment variable of that name or by manually editing the script's global variable. This is used to name the database and to provide default source_date in the voters_voter table.
+## Getting started
 
-With raw voter files in place, you can run the voter script with `python load_county_voters` plus one of three arguments:
-1. `prep_files`: This processes raw county files and preps them for use in PANDA or in a database.
-2. `load_postgres`: After files are prepped, this will create, load and index a Postgres voter database.
-3. `[RAW FILE]`: You can pass in a file name for a raw county voter file, such as `BAY_20190312.txt`. With this option, the script will prep one raw file for loading to PANDA or to the database.
+First, install the Python requirements:
+
+```bash
+pip install -r requirements/base.txt
+```
+
+The voter script is tailored to Florida but could be adapted. It requires some source data and a date value:
+- County voter registration files, which in Florida are available from the state's Division of Elections.
+- A VOTER_DATA_DATE value in YYYY-MM-DD form, provided by an environment variable of that name or by manually editing the script's global variable. This is used to name the database, to provide default source_date in the voters_voter table and to provide a YEAR value for accessing the right data directory.
+
+With raw voter files in place, you can run the voter script with `python load_county_voters` plus one of four arguments:
+1. `[RAW FILE]`: You can pass in a file name for a raw county voter file, such as `BAY_20190312.txt`. This will prep a single raw file for loading to a database or to PANDA, if the raw file is in /VoterDetail/.
+2. `prep_files`: This preps all raw county files found in /VoterDetail/ and makes them ready for export to a database or to PANDA.
+3. `load_postgres`: After files are prepped, this will create, load and index a Postgres voter database. If you put all 67 Florida county files in the /VoterDetail/ directory and prep them, this will create a statewide database of Florida voters. 
+4. `export_to_panda`: To export all prepped county files to a PANDA instance, creating one dataset per county.
 
 ### Local directories
-The script uses some local directories as it transforms the raw data, and it assumes data come from the current year.
+The script uses some local directories as it transforms the raw data.
 
 The assumed directory structure includes these folders:
 

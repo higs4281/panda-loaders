@@ -1,6 +1,5 @@
 from django.db import models
 
-
 SUFFIXES = {
     'II': 'II', 'III': 'III', 'IV': 'IV', 'V': 'V', 'VI': 'VI',
     'JR': 'Jr.', 'JR.': 'Jr.', 'SR': 'Sr.', 'SR.': 'Sr.',
