@@ -37,7 +37,6 @@ TEMP = "{}/temp".format(YEARBASE)
 PREPBASE = "{}/prep".format(YEARBASE)
 LOADBASE = "{}/load".format(YEARBASE)
 LOADED = "{}/loaded".format(YEARBASE)
-RAWHEADER = "{}/HEADER.txt".format(BASE)  # tab-delimited original header
 
 
 def get_postgres_db_name():
@@ -251,7 +250,7 @@ def stage_local_files(filename, slug):
     """Handle local file-copying operations."""
     tempfile = "{}/{}_temp.csv".format(TEMP, slug)
     prepfile = "{}/{}_prep.csv".format(PREPBASE, slug)
-    subprocess.run("cp {} {}".format(RAWHEADER, tempfile), shell=True)
+    subprocess.run("cp HEADER.txt {}".format(tempfile), shell=True)
     subprocess.run('cat {}/{} >> {}'.format(
         RAWBASE, filename, tempfile), shell=True)
     subprocess.run("csvcut -t -c {} {} > {}".format(
@@ -337,7 +336,7 @@ def prep_files():
     clean_processing_directories()
 
 
-def load_postgres():
+def load_to_postgres():
     db = get_postgres_db_name()
     if db not in subprocess.getoutput('psql -l'):
         subprocess.run('createdb {}'.format(db), shell=True)
@@ -350,11 +349,11 @@ def load_postgres():
     for each in no_dotfiles(LOADBASE):
         slug = each[:3]
         if slug in ALL_FL_COUNTIES:
-            load_to_postgres(db, each, slug)
+            load_county_to_postgres(db, each, slug)
     subprocess.run('psql {} -f index_voter_tables.sql'.format(db), shell=True)
 
 
-def load_to_postgres(db, file_name, slug):
+def load_county_to_postgres(db, file_name, slug):
     set_county_command = (
         'echo "ALTER TABLE voters_voter ALTER COLUMN county_slug '
         'SET DEFAULT \'{}\';" | psql {}'.format(slug, db))
@@ -430,8 +429,8 @@ if __name__ == "__main__":
         if sys.argv[1] == 'prep_files':
             print("Prepping any county-slugged files in {}".format(RAWBASE))
             prep_files()
-        elif sys.argv[1] == 'load_postgres':
-            load_postgres()
+        elif sys.argv[1] == 'load_to_postgres':
+            load_to_postgres()
         elif sys.argv[1] == 'export_to_panda':
             export_to_panda()
         else:
@@ -445,6 +444,6 @@ if __name__ == "__main__":
             "Please provide either a single voter file name to process, "
             "or one of these arguments: \n"
             "- prep_files (to prep any county files in /VoterDetail)\n"
-            "- load_postgres (to create and load county files to a database)\n"
+            "- load_to_postgres (to create and load a database)\n"
             "- export_to_panda (to export any prepped county files to PANDA)."
         )

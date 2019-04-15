@@ -24,14 +24,14 @@ class RunVars:
 # panda params
 RUNVARS = RunVars()
 RUNVARS.starter = datetime.datetime.now()
-PANDA_BASE = os.getenv('PANDA_BASE')
+PANDA_BASE_URL = os.getenv('PANDA_BASE_URL')
 PANDA_AUTH_PARAMS = {
     'email': os.getenv('PANDA_USER'),
     'api_key': os.getenv('PANDA_API_KEY')
 }
 QUERY_LIMIT = 1200
 PANDA_BULK_UPDATE_SIZE = 1000
-PANDA_API = '%s/api/1.0' % PANDA_BASE
+PANDA_API = '%s/api/1.0' % PANDA_BASE_URL
 PANDA_ALL_DATA_URL = "%s/data/" % PANDA_API
 PANDA_DATASET_BASE = "%s/dataset" % PANDA_API
 DATASET_NAME = "Tampa bicycle citations 2003 to 2014"
