@@ -327,6 +327,7 @@ def no_dotfiles(path):
 
 def prep_files():
     """Cycle through entries and prep them."""
+    prep_directories()  # make sure prep directories exist
     for each in no_dotfiles(RAWBASE):
         slug = each[:3]
         if slug in ALL_FL_COUNTIES:
