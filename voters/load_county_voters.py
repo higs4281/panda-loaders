@@ -32,7 +32,7 @@ PANDA_VOTERS_SUFFIX = '&category=voters'
 # FILE SYSTEM VARS
 BASE = os.getenv('PANDA_LOADERS_BASE_DIR', "/tmp")
 YEARBASE = "{}/{}".format(BASE, YEAR)
-RAWBASE = "{}/VoterDetail".format(YEARBASE)
+RAWBASE = "{}/  ".format(YEARBASE)
 TEMP = "{}/temp".format(YEARBASE)
 PREPBASE = "{}/prep".format(YEARBASE)
 LOADBASE = "{}/load".format(YEARBASE)
@@ -40,7 +40,7 @@ LOADED = "{}/loaded".format(YEARBASE)
 
 
 def get_postgres_db_name():
-    return "voter_data_{}".format(VOTER_DATA_DATE).replace('-', '_')
+    return "voter_data_{}".format(VOTER_DATA_DATE).replace('-', '')
 
 
 def prep_directories():
@@ -338,14 +338,14 @@ def prep_files():
 
 def load_to_postgres():
     db = get_postgres_db_name()
+    set_date_command = (
+        'echo "ALTER TABLE voters_voter ALTER COLUMN source_date '
+        'SET DEFAULT \'{}\';" | psql {}'.format(VOTER_DATA_DATE, db))
     if db not in subprocess.getoutput('psql -l'):
         subprocess.run('createdb {}'.format(db), shell=True)
         subprocess.run(
             'psql {} -f create_voter_tables.sql'.format(db), shell=True)
-        set_date_command = (
-            'echo "ALTER TABLE voters_voter ALTER COLUMN source_date '
-            'SET DEFAULT \'{}\';" | psql {}'.format(VOTER_DATA_DATE, db))
-        subprocess.run(set_date_command, shell=True)
+    subprocess.run(set_date_command, shell=True)
     for each in no_dotfiles(LOADBASE):
         slug = each[:3]
         if slug in ALL_FL_COUNTIES:
