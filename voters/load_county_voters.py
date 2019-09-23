@@ -10,7 +10,7 @@ from dateutil import parser
 from django.template.defaultfilters import slugify
 
 # SET VOTER_DATA_DATE to the date on the voter disk
-VOTER_DATA_DATE = datetime.datetime(2019, 5, 12).date()
+VOTER_DATA_DATE = datetime.datetime(2019, 9, 10).date()
 if os.getenv('VOTER_DATA_DATE'):
     VOTER_DATA_DATE = parser.parse(os.getenv('VOTER_DATA_DATE')).date()
 
@@ -32,7 +32,7 @@ PANDA_VOTERS_SUFFIX = '&category=voters'
 # FILE SYSTEM VARS
 BASE = os.getenv('PANDA_LOADERS_BASE_DIR', "/tmp")
 YEARBASE = "{}/{}".format(BASE, YEAR)
-RAWBASE = "{}/  ".format(YEARBASE)
+RAWBASE = "{}/VoterDetail".format(YEARBASE)
 TEMP = "{}/temp".format(YEARBASE)
 PREPBASE = "{}/prep".format(YEARBASE)
 LOADBASE = "{}/load".format(YEARBASE)
@@ -260,7 +260,8 @@ def stage_local_files(filename, slug):
 
 def clean_processing_directories():
     for directory in [TEMP, PREPBASE]:
-        subprocess.run("rm {}/*".format(directory), shell=True)
+        if len(os.listdir(TEMP)) > 0:
+            subprocess.run("rm {}/*".format(directory), shell=True)
 
 
 def prep(filename):
