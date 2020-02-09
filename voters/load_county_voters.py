@@ -139,7 +139,7 @@ _PARTY = {  # Codes for parties registered in Florida as of October 2018
     'TPF': 'Tea Party',
 }
 
-ALL_FL_COUNTIES = {
+FL_COUNTIES = {
     "ALA": "Alachua",
     "BAK": "Baker",
     "BAY": "Bay",
@@ -331,9 +331,9 @@ def prep_files():
     prep_directories()  # make sure prep directories exist
     for each in no_dotfiles(RAWBASE):
         slug = each[:3]
-        if slug in ALL_FL_COUNTIES:
+        if slug in FL_COUNTIES:
             print(
-                "Prepping voter data for {}".format(ALL_FL_COUNTIES.get(slug)))
+                "Prepping voter data for {}".format(FL_COUNTIES.get(slug)))
             prep(each)
     clean_processing_directories()
 
@@ -350,7 +350,7 @@ def load_to_postgres():
     subprocess.run(set_date_command, shell=True)
     for each in no_dotfiles(LOADBASE):
         slug = each[:3]
-        if slug in ALL_FL_COUNTIES:
+        if slug in FL_COUNTIES:
             load_county_to_postgres(db, each, slug)
     subprocess.run('psql {} -f index_voter_tables.sql'.format(db), shell=True)
 
@@ -374,11 +374,11 @@ def export_county(countyfile):
     putstart = datetime.datetime.now()
     putcount = 0
     slug = countyfile[:3]
-    if slug not in ALL_FL_COUNTIES.keys():
+    if slug not in FL_COUNTIES.keys():
         print("'{}'' isn't a standard Florida county voter slug".format(slug))
         return putcount
     else:
-        county = ALL_FL_COUNTIES[slug]
+        county = FL_COUNTIES[slug]
         name = "{} voter registration {}".format(county, YEAR)
         dataset_slug = slugify(name)
         dataset_url = '{}/{}/'.format(PANDA_DATASET_BASE, dataset_slug)
@@ -438,7 +438,7 @@ if __name__ == "__main__":
         else:
             voter_file = sys.argv[1]
             print("Prepping voter data for {} County".format(
-                ALL_FL_COUNTIES.get(voter_file[:3]))
+                FL_COUNTIES.get(voter_file[:3]))
             )
             prep(voter_file)
     else:
