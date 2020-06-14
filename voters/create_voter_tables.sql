@@ -14,7 +14,6 @@ ALTER TABLE "voters_voter" ALTER COLUMN "mname" DROP NOT NULL;
 ALTER TABLE "voters_voter" ALTER COLUMN "party" DROP NOT NULL;
 ALTER TABLE "voters_voter" ALTER COLUMN "phone" DROP NOT NULL;
 ALTER TABLE "voters_voter" ALTER COLUMN "race" DROP NOT NULL;
-ALTER TABLE "voters_voter" ALTER COLUMN "source_date" DROP NOT NULL;
 ALTER TABLE "voters_voter" ALTER COLUMN "suffix" DROP NOT NULL;
 ALTER TABLE "voters_voter" ALTER COLUMN "zip" DROP NOT NULL;
 COMMIT;
