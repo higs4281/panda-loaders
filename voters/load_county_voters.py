@@ -10,8 +10,8 @@ import requests
 from dateutil import parser
 from django.template.defaultfilters import slugify
 
-# SET VOTER_DATA_DATE to the date on the voter disk
-VOTER_DATA_DATE = datetime.datetime(2020, 7, 7).date()
+# SET VOTER_DATA_DATE to the date on the voter disk, defaulting to today.
+VOTER_DATA_DATE = datetime.date.today()
 if os.getenv('VOTER_DATA_DATE'):
     VOTER_DATA_DATE = parser.parse(os.getenv('VOTER_DATA_DATE')).date()
 
@@ -342,14 +342,10 @@ def prep_files():
 
 def load_to_postgres():
     db = get_postgres_db_name()
-    set_date_command = (
-        'echo "ALTER TABLE voters_voter ALTER COLUMN source_date '
-        'SET DEFAULT \'{}\';" | psql {}'.format(VOTER_DATA_DATE, db))
     if db not in subprocess.getoutput('psql -l'):
         subprocess.run('createdb {}'.format(db), shell=True)
         subprocess.run(
             'psql {} -f create_voter_tables.sql'.format(db), shell=True)
-    subprocess.run(set_date_command, shell=True)
     for each in no_dotfiles(LOADBASE):
         slug = each[:3]
         if slug in FL_COUNTIES:

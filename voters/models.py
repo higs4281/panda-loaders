@@ -96,7 +96,6 @@ class Voter(models.Model):
     email = models.CharField(max_length=255, blank=True, null=True)
     voter_id = models.CharField(max_length=255, blank=True, null=True)
     county_slug = models.CharField(max_length=255, blank=True, null=True)
-    source_date = models.DateField(max_length=255, blank=True, null=True)
 
     class Meta:
         ordering = ['lname', 'fname']
