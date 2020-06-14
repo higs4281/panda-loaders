@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import csv
 import datetime
 import json
@@ -10,11 +11,12 @@ from dateutil import parser
 from django.template.defaultfilters import slugify
 
 # SET VOTER_DATA_DATE to the date on the voter disk
-VOTER_DATA_DATE = datetime.datetime(2019, 9, 10).date()
+VOTER_DATA_DATE = datetime.datetime(2020, 7, 7).date()
 if os.getenv('VOTER_DATA_DATE'):
     VOTER_DATA_DATE = parser.parse(os.getenv('VOTER_DATA_DATE')).date()
 
 YEAR = VOTER_DATA_DATE.year
+SCRIPT_NAME = os.path.basename(__file__).split('.')[0]
 
 # PANDA VARS
 PANDA_AUTH_PARAMS = {
@@ -427,6 +429,9 @@ def export_to_panda():
 
 
 if __name__ == "__main__":
+    print(
+        f"{SCRIPT_NAME} reporting for duty, "
+        f"with voter data date of {VOTER_DATA_DATE}")
     if len(sys.argv) == 2:
         if sys.argv[1] == 'prep_files':
             print("Prepping any county-slugged files in {}".format(RAWBASE))
