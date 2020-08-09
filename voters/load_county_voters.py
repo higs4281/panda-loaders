@@ -14,7 +14,6 @@ from django.template.defaultfilters import slugify
 VOTER_DATA_DATE = datetime.date.today()
 if os.getenv('VOTER_DATA_DATE'):
     VOTER_DATA_DATE = parser.parse(os.getenv('VOTER_DATA_DATE')).date()
-
 YEAR = VOTER_DATA_DATE.year
 SCRIPT_NAME = os.path.basename(__file__).split('.')[0]
 
@@ -39,23 +38,25 @@ TEMP = "{}/temp".format(YEARBASE)
 PREPBASE = "{}/prep".format(YEARBASE)
 LOADBASE = "{}/load".format(YEARBASE)
 LOADED = "{}/loaded".format(YEARBASE)
-
+WORKING_DIRS = [LOADBASE, LOADED, PREPBASE, RAWBASE, TEMP, YEARBASE]
+PROCESSING_DIRS = [PREPBASE, RAWBASE, TEMP]
 
 def get_postgres_db_name():
     return "voter_data_{}".format(VOTER_DATA_DATE).replace('-', '')
 
 
+def purge_processing_directories(dirs=PROCESSING_DIRS):
+    for directory in dirs:
+        if len(os.listdir(directory)) > 0:
+            subprocess.run(f"rm {directory}/*", shell=True)
+
+
 def prep_directories():
-    """Make sure directories exist and are empty."""
+    """Make sure working directories exist and processing dirs are empty."""
     for each in [YEARBASE, RAWBASE, TEMP, PREPBASE, LOADBASE, LOADED]:
         if not os.path.isdir(each):
             os.mkdir(each)
-    for _dir in [TEMP, PREPBASE]:
-        for _file in os.listdir(_dir):
-            subprocess.run(['rm', '{}/{}'.format(_dir, _file)])
-        # for _file in os.listdir(LOADBASE):
-        #     orig = "{}/{}".format(LOADBASE, _file)
-        #     subprocess.run(['mv', '{} {}'.format(orig, LOADED)])
+    purge_processing_directories()
 
 
 def panda_get(url, params):
@@ -260,12 +261,6 @@ def stage_local_files(filename, slug):
     return prepfile
 
 
-def clean_processing_directories():
-    for directory in [TEMP, PREPBASE]:
-        if len(os.listdir(TEMP)) > 0:
-            subprocess.run("rm {}/*".format(directory), shell=True)
-
-
 def prep(filename):
     """
     Prepare a raw voter .txt file.
@@ -337,7 +332,7 @@ def prep_files():
             print(
                 "Prepping voter data for {}".format(FL_COUNTIES.get(slug)))
             prep(each)
-    clean_processing_directories()
+    purge_processing_directories()
 
 
 def load_to_postgres():
