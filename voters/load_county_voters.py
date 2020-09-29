@@ -38,8 +38,8 @@ TEMP = "{}/temp".format(YEARBASE)
 PREPBASE = "{}/prep".format(YEARBASE)
 LOADBASE = "{}/load".format(YEARBASE)
 LOADED = "{}/loaded".format(YEARBASE)
-WORKING_DIRS = [LOADBASE, LOADED, PREPBASE, RAWBASE, TEMP, YEARBASE]
-PROCESSING_DIRS = [PREPBASE, RAWBASE, TEMP]
+WORKING_DIRS = [LOADBASE, LOADED, RAWBASE, PREPBASE, TEMP, YEARBASE]
+PROCESSING_DIRS = [PREPBASE, TEMP]
 
 def get_postgres_db_name():
     return "voter_data_{}".format(VOTER_DATA_DATE).replace('-', '')
@@ -48,7 +48,7 @@ def get_postgres_db_name():
 def purge_processing_directories(dirs=PROCESSING_DIRS):
     for directory in dirs:
         if len(os.listdir(directory)) > 0:
-            subprocess.run(f"rm {directory}/*", shell=True)
+            subprocess.run(f"rm {directory}/*", shell=True)  # noqa
 
 
 def prep_directories():
