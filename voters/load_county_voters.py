@@ -8,7 +8,7 @@ import sys
 
 import requests
 from dateutil import parser
-from django.template.defaultfilters import slugify
+from django.utils.text import slugify
 
 # SET VOTER_DATA_DATE to the date on the voter disk, defaulting to today.
 VOTER_DATA_DATE = datetime.date.today()
@@ -346,6 +346,7 @@ def load_to_postgres():
         if slug in FL_COUNTIES:
             load_county_to_postgres(db, each, slug)
     subprocess.run('psql {} -f index_voter_tables.sql'.format(db), shell=True)
+    print(f"Created database {db}")
 
 
 def load_county_to_postgres(db, file_name, slug):
