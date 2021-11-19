@@ -41,6 +41,7 @@ LOADED = "{}/loaded".format(YEARBASE)
 WORKING_DIRS = [LOADBASE, LOADED, RAWBASE, PREPBASE, TEMP, YEARBASE]
 PROCESSING_DIRS = [PREPBASE, TEMP]
 
+
 def get_postgres_db_name():
     return "voter_data_{}".format(VOTER_DATA_DATE).replace("-", "")
 
@@ -86,6 +87,7 @@ def panda_delete(url, params):
     else:
         params.update(PANDA_AUTH_PARAMS)
     return requests.delete(url, params=params)
+
 
 HISTORY_CODES = {
     "A": "Voted by mail",
@@ -277,7 +279,6 @@ We want to harvest these columns for the database
 We use the COLUMNS value to slice the CSV, using csvkit
 """
 COLUMNS = "3,5,6,4,8,9,10,12,20,21,22,24,35,36,38,2"
-
 
 
 def stage_local_files(filename, slug):
