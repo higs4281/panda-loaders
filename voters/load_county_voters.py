@@ -358,11 +358,10 @@ def no_dotfiles(path):
 def prep_files():
     """Cycle through entries and prep them."""
     prep_directories()  # make sure prep directories exist
-    for each in no_dotfiles(RAWBASE):
+    for i, each in enumerate(no_dotfiles(RAWBASE)):
         slug = each[:3]
         if slug in FL_COUNTIES:
-            print(
-                "Prepping voter data for {}".format(FL_COUNTIES.get(slug)))
+            print(f"{i}: Prepping voter data for {FL_COUNTIES.get(slug)}")
             prep(each)
     purge_processing_directories()
 
@@ -474,7 +473,7 @@ if __name__ == "__main__":
         print(
             "Please provide either a single voter file name to process, "
             "or one of these arguments: \n"
-            "- prep_files (to prep any county files in /VoterDetail)\n"
-            "- load_to_postgres (to create and load a database)\n"
-            "- export_to_panda (to export any prepped county files to PANDA)."
+            "• prep_files (to prep any county files in /VoterDetail)\n"
+            "• load_to_postgres (to create and load a database)\n"
+            "• export_to_panda (to export any prepped county files to PANDA)."
         )
