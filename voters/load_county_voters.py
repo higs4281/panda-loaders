@@ -361,7 +361,7 @@ def prep_files():
     for i, each in enumerate(no_dotfiles(RAWBASE)):
         slug = each[:3]
         if slug in FL_COUNTIES:
-            print(f"{i}: Prepping voter data for {FL_COUNTIES.get(slug)}")
+            print(f"{i + 1}: Prepping voter data for {FL_COUNTIES.get(slug)}")
             prep(each)
     purge_processing_directories()
 
