@@ -10,11 +10,15 @@ import requests
 from dateutil import parser
 from django.utils.text import slugify
 
-# SET VOTER_DATA_DATE to the date on the voter disk, defaulting to today.
-VOTER_DATA_DATE = datetime.date.today()
-if os.getenv("VOTER_DATA_DATE"):
-    VOTER_DATA_DATE = parser.parse(os.getenv("VOTER_DATA_DATE")).date()
-YEAR = VOTER_DATA_DATE.year
+# GET VOTER_DATA_DATE – should be set to the date on the voter disk
+VOTER_DATA_DATE_STRING = os.getenv("VOTER_DATA_DATE")
+if not VOTER_DATA_DATE_STRING:
+    print(
+        "Can't proceed without a VOTER_DATA_DATE. Please set an env var for that value"
+    )
+    sys.exit(1)
+DATA_DATE = parser.parse(VOTER_DATA_DATE_STRING).date()
+YEAR = DATA_DATE.year
 SCRIPT_NAME = os.path.basename(__file__).split(".")[0]
 
 # PANDA VARS
@@ -43,7 +47,7 @@ PROCESSING_DIRS = [PREPBASE, TEMP]
 
 
 def get_postgres_db_name():
-    return "voter_data_{}".format(VOTER_DATA_DATE).replace("-", "")
+    return f"voter_data_{VOTER_DATA_DATE_STRING.replace('-', '')}"
 
 
 def purge_processing_directories(dirs=PROCESSING_DIRS):
@@ -345,7 +349,8 @@ def prep(filename):
             for entry in biglist:
                 writer.writerow(entry)
     print("{} ready for loading; prepping took {}".format(
-        loadfile, (datetime.datetime.now() - prepstart)))
+        filename, (datetime.datetime.now() - prepstart))
+    )
 
 
 def no_dotfiles(path):
@@ -358,11 +363,13 @@ def no_dotfiles(path):
 def prep_files():
     """Cycle through entries and prep them."""
     prep_directories()  # make sure prep directories exist
-    for i, each in enumerate(no_dotfiles(RAWBASE)):
+    voter_files = sorted(no_dotfiles(RAWBASE))
+    valid_files = [f for f in voter_files if f[:3] in FL_COUNTIES]
+    print(f"Prepping {len(valid_files)} county voter files")
+    for i, each in enumerate(valid_files):
         slug = each[:3]
-        if slug in FL_COUNTIES:
-            print(f"{i + 1}: Prepping voter data for {FL_COUNTIES.get(slug)}")
-            prep(each)
+        print(f"{i + 1}: Prepping voter data for {FL_COUNTIES.get(slug)}")
+        prep(each)
     purge_processing_directories()
 
 
@@ -454,10 +461,9 @@ def export_to_panda():
 if __name__ == "__main__":
     print(
         f"{SCRIPT_NAME} reporting for duty, "
-        f"with voter data date of {VOTER_DATA_DATE}")
+        f"with voter data date of {VOTER_DATA_DATE_STRING}")
     if len(sys.argv) == 2:
         if sys.argv[1] == "prep_files":
-            print("Prepping any county-slugged files in {}".format(RAWBASE))
             prep_files()
         elif sys.argv[1] == "load_to_postgres":
             load_to_postgres()
