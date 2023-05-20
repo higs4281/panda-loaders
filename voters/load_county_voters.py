@@ -17,8 +17,9 @@ if not VOTER_DATA_DATE_STRING:
         "Can't proceed without a VOTER_DATA_DATE. Please set an env var for that value"
     )
     sys.exit(1)
-DATA_DATE = parser.parse(VOTER_DATA_DATE_STRING).date()
-YEAR = DATA_DATE.year
+
+VOTER_DATA_DATE = parser.parse(VOTER_DATA_DATE_STRING).date()
+YEAR = VOTER_DATA_DATE.year
 SCRIPT_NAME = os.path.basename(__file__).split(".")[0]
 
 # PANDA VARS
@@ -53,7 +54,7 @@ def get_postgres_db_name():
 def purge_processing_directories(dirs=PROCESSING_DIRS):
     for directory in dirs:
         if len(os.listdir(directory)) > 0:
-            subprocess.run(f"rm {directory}/*", shell=True)  # noqa
+            subprocess.run(f"rm {directory}/*", shell=True)
 
 
 def prep_directories():
@@ -110,7 +111,7 @@ VOTER_COLUMNS = [
     "addr1",
     "addr2",
     "city",
-    "zip",
+    "zipcode",
     "gender",
     "race",
     "birthdate",
@@ -119,6 +120,9 @@ VOTER_COLUMNS = [
     "phone",
     "email",
     "voter_ID",
+    "exemption_requested",  # bool
+    "registration_date",
+    "active",  # bool
 ]
 
 _RACE = {
@@ -261,7 +265,24 @@ SOUTH_FLORIDA = {  # southern counties not covered by mid_Florida list
     "PAL": "PalmBeach",
 }
 
+SUPPRESS_MAP = {
+    "N": "false",
+    "Y": "true"
+}
+
+ACTIVE_MAP = {
+    "ACT": "true",
+    "INA": "false"
+}
+
 """
+2023: columns to add: 
+
+7: Requested public records exemption (N or Y)
+23: Registration Date
+29: voter status (ACT or INA – for active and inactive) 
+
+
 We want to harvest these columns for the database
 3: last name,
 5: first name
@@ -274,26 +295,27 @@ We want to harvest these columns for the database
 20: gender
 21: race
 22: dob
-24: part
+24: party
 35: area code
 36: phone
 38: email
 2: voter ID
+7: Requested public records exemption (N or Y)
+23: Registration Date
+29: voter status (ACT or INA – for active and inactive) 
 
 We use the COLUMNS value to slice the CSV, using csvkit
 """
-COLUMNS = "3,5,6,4,8,9,10,12,20,21,22,24,35,36,38,2"
+COLUMNS = "3,5,6,4,8,9,10,12,20,21,22,24,35,36,38,2,7,23,29"
 
 
 def stage_local_files(filename, slug):
     """Handle local file-copying operations."""
-    tempfile = "{}/{}_temp.csv".format(TEMP, slug)
-    prepfile = "{}/{}_prep.csv".format(PREPBASE, slug)
-    subprocess.run("cp HEADER.txt {}".format(tempfile), shell=True)
-    subprocess.run("cat {}/{} >> {}".format(
-        RAWBASE, filename, tempfile), shell=True)
-    subprocess.run("csvcut -t -c {} {} > {}".format(
-        COLUMNS, tempfile, prepfile), shell=True)
+    tempfile = f"{TEMP}/{slug}_temp.csv"
+    prepfile = f"{PREPBASE}/{slug}_prep.csv"
+    subprocess.run(f"cp HEADER.txt {tempfile}", shell=True)
+    subprocess.run(f"cat {RAWBASE}/{filename} >> {tempfile}", shell=True)
+    subprocess.run(f"csvcut -t -c {COLUMNS} {tempfile} > {prepfile}", shell=True)
     return prepfile
 
 
@@ -314,16 +336,15 @@ def prep(filename):
     loadfile = "{}/{}.csv".format(LOADBASE, slug)
     prepfile = stage_local_files(filename, slug)
     with open(prepfile, "r") as prepped_file:
-        biglist = []
+        biglist = []  # a list of row lists
         reader = csv.DictReader(prepped_file)
         header = reader.fieldnames
         for row in reader:
-            race = row.get("race")
-            if race in _RACE.keys():
-                race = _RACE[race]
-            party = row.get("party")
-            if party in _PARTY.keys():
-                party = _PARTY[party]
+            race = _RACE.get(row.get("race"), "")
+            party = _PARTY.get(row.get("party"), "OTHER")
+            suppress = SUPPRESS_MAP.get(row.get("suppress"), "false")
+            registered = row.get("RegDate", "")
+            active = ACTIVE_MAP.get(row.get("VoterStatus"), "true")
             biglist.append([
                 row["lname"].strip(),
                 row["fname"].strip(),
@@ -340,9 +361,12 @@ def prep(filename):
                 row["areacode"].strip(),
                 row["phone"].strip(),
                 row["email"].strip(),
+                suppress,
+                registered,
+                active,
                 row["voter_ID"].strip()
             ])
-        biglist = sorted(biglist)  # sorts list of lists based on last name
+        biglist = sorted(biglist)  # sorts list of row lists by last name
         with open(loadfile, "w") as load_file:
             writer = csv.writer(load_file)
             writer.writerow(header)
@@ -394,8 +418,9 @@ def load_county_to_postgres(db, file_name, slug):
     subprocess.run(set_county_command, shell=True)
     load_county_command = (
         'echo "COPY voters_voter (lname, fname, mname, suffix, addr1, addr2, '
-        'city, zip, gender, race, birthdate, party, areacode, phone, email, '
-        'voter_id) FROM \'{}/{}.csv\' CSV HEADER;" | psql {}'.format(
+        'city, zipcode, gender, race, birthdate, party, areacode, phone, email, '
+        'exemption_requested, registration_date, active, voter_id) '  
+        'FROM \'{}/{}.csv\' CSV HEADER;" | psql {}'.format(
             LOADBASE, slug, db))
     subprocess.run(load_county_command, shell=True)
 
@@ -461,7 +486,7 @@ def export_to_panda():
 if __name__ == "__main__":
     print(
         f"{SCRIPT_NAME} reporting for duty, "
-        f"with voter data date of {VOTER_DATA_DATE_STRING}")
+        f"with voter data date of {VOTER_DATA_DATE}")
     if len(sys.argv) == 2:
         if sys.argv[1] == "prep_files":
             prep_files()
@@ -469,6 +494,8 @@ if __name__ == "__main__":
             load_to_postgres()
         elif sys.argv[1] == "export_to_panda":
             export_to_panda()
+        elif sys.argv[1] == "purge":
+            purge_processing_directories(dirs=WORKING_DIRS[:-1])
         else:
             voter_file = sys.argv[1]
             print("Prepping voter data for {} County".format(
@@ -481,5 +508,6 @@ if __name__ == "__main__":
             "or one of these arguments: \n"
             "• prep_files (to prep any county files in /VoterDetail)\n"
             "• load_to_postgres (to create and load a database)\n"
+            "• purge (to clear voter files from all working directories)\n"
             "• export_to_panda (to export any prepped county files to PANDA)."
         )

@@ -86,7 +86,7 @@ class Voter(models.Model):
     addr1 = models.CharField(max_length=255, blank=True, null=True)
     addr2 = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True, null=True)
-    zip = models.CharField(max_length=255, blank=True, null=True)
+    zipcode = models.CharField(max_length=255, blank=True, null=True)
     gender = models.CharField(max_length=255, blank=True, null=True)
     race = models.CharField(max_length=255, blank=True, null=True)
     birthdate = models.CharField(max_length=255, blank=True, null=True)
@@ -95,6 +95,9 @@ class Voter(models.Model):
     phone = models.CharField(max_length=255, blank=True, null=True)
     email = models.CharField(max_length=255, blank=True, null=True)
     voter_id = models.CharField(max_length=255, blank=True, null=True)
+    exemption_requested = models.BooleanField(default=False)
+    registration_date = models.CharField(max_length=255, blank=True, null=True)
+    active = models.BooleanField(default=False)
     county_slug = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
