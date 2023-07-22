@@ -25,7 +25,7 @@ SCRIPT_NAME = os.path.basename(__file__).split(".")[0]
 # PANDA VARS
 PANDA_AUTH_PARAMS = {
     "email": os.getenv("PANDA_USER"),
-    "api_key": os.getenv("PANDA_API_KEY")
+    "api_key": os.getenv("PANDA_API_KEY"),
 }
 PANDA_BASE = os.getenv("PANDA_BASE")
 QUERY_LIMIT = 1200
@@ -83,8 +83,8 @@ def panda_put(url, data, params):
     else:
         params.update(PANDA_AUTH_PARAMS)
     return requests.put(
-        url, data, params=params,
-        headers={"Content-Type": "application/json"})
+        url, data, params=params, headers={"Content-Type": "application/json"}
+    )
 
 
 def panda_delete(url, params):
@@ -135,7 +135,7 @@ _RACE = {
     "5": "WH",  # using WH so searches for people named "White" will work
     "6": "Other",
     "7": "Multiracial",
-    "9": "Unknown"  # yes, there is no 8
+    "9": "Unknown",  # yes, there is no 8
 }
 _PARTY = {  # Codes for parties registered in Florida as of July 2021
     "CPF": "Constitution",
@@ -230,7 +230,7 @@ FL_COUNTIES = {
     "VOL": "Volusia",
     "WAK": "Wakulla",
     "WAL": "Walton",
-    "WAS": "Washington"
+    "WAS": "Washington",
 }
 
 MID_FLORIDA = {  # Counties used for Tampa Bay regional reference db
@@ -267,15 +267,9 @@ SOUTH_FLORIDA = {  # southern counties not covered by mid_Florida list
     "PAL": "PalmBeach",
 }
 
-SUPPRESS_MAP = {
-    "N": "false",
-    "Y": "true"
-}
+SUPPRESS_MAP = {"N": "false", "Y": "true"}
 
-ACTIVE_MAP = {
-    "ACT": "true",
-    "INA": "false"
-}
+ACTIVE_MAP = {"ACT": "true", "INA": "false"}
 
 """
 2023: columns to add: 
@@ -317,7 +311,9 @@ def stage_local_files(filename, slug):
     prepfile = f"{PREPBASE}/{slug}_prep.csv"
     subprocess.run(f"cp HEADER.txt {tempfile}", shell=True)
     subprocess.run(f"cat {RAWBASE}/{filename} >> {tempfile}", shell=True)
-    subprocess.run(f"csvcut -t -c {COLUMNS} {tempfile} > {prepfile}", shell=True)
+    subprocess.run(
+        f"csvcut -t -c {COLUMNS} {tempfile} > {prepfile}", shell=True
+    )
     return prepfile
 
 
@@ -347,35 +343,41 @@ def prep(filename):
             suppress = SUPPRESS_MAP.get(row.get("suppress"), "false")
             registered = row.get("RegDate", "")
             active = ACTIVE_MAP.get(row.get("VoterStatus"), "true")
-            biglist.append([
-                row["lname"].strip(),
-                row["fname"].strip(),
-                row["mname"].strip(),
-                row["suffix"].strip(),
-                " ".join(row["addr1"].split()),  # clean interior white spaces
-                row["addr2"].strip(),
-                row["city"].strip(),
-                row["zip"].strip(),
-                row["gender"].strip(),
-                race,
-                row["birthdate"].strip(),
-                party,
-                row["areacode"].strip(),
-                row["phone"].strip(),
-                row["email"].strip(),
-                suppress,
-                registered,
-                active,
-                row["voter_ID"].strip()
-            ])
+            biglist.append(
+                [
+                    row["lname"].strip(),
+                    row["fname"].strip(),
+                    row["mname"].strip(),
+                    row["suffix"].strip(),
+                    " ".join(
+                        row["addr1"].split()
+                    ),  # clean interior white spaces
+                    row["addr2"].strip(),
+                    row["city"].strip(),
+                    row["zip"].strip(),
+                    row["gender"].strip(),
+                    race,
+                    row["birthdate"].strip(),
+                    party,
+                    row["areacode"].strip(),
+                    row["phone"].strip(),
+                    row["email"].strip(),
+                    suppress,
+                    registered,
+                    active,
+                    row["voter_ID"].strip(),
+                ]
+            )
         biglist = sorted(biglist)  # sorts list of row lists by last name
         with open(loadfile, "w") as load_file:
             writer = csv.writer(load_file)
             writer.writerow(header)
             for entry in biglist:
                 writer.writerow(entry)
-    print("{} ready for loading; prepping took {}".format(
-        filename, (datetime.datetime.now() - prepstart))
+    print(
+        "{} ready for loading; prepping took {}".format(
+            filename, (datetime.datetime.now() - prepstart)
+        )
     )
 
 
@@ -396,7 +398,6 @@ def prep_files():
         slug = each[:3]
         print(f"{i + 1}: Prepping voter data for {FL_COUNTIES.get(slug)}")
         prep(each)
-    purge_directories()
 
 
 def load_to_postgres():
@@ -404,26 +405,29 @@ def load_to_postgres():
     if db not in subprocess.getoutput("psql -l"):
         subprocess.run("createdb {}".format(db), shell=True)
         subprocess.run(
-            "psql {} -f create_voter_tables.sql".format(db), shell=True)
+            "psql {} -f create_voter_tables.sql".format(db), shell=True
+        )
     for each in no_dotfiles(LOADBASE):
         slug = each[:3]
         if slug in FL_COUNTIES:
             load_county_to_postgres(db, each, slug)
     subprocess.run("psql {} -f index_voter_tables.sql".format(db), shell=True)
-    print(f"Created database {db}")
+    print(f"Created database {db}\n Now purging directories ...")
+    purge_directories()
 
 
 def load_county_to_postgres(db, file_name, slug):
     set_county_command = (
         'echo "ALTER TABLE voters_voter ALTER COLUMN county_slug '
-        'SET DEFAULT \'{}\';" | psql {}'.format(slug, db))
+        "SET DEFAULT '{}';\" | psql {}".format(slug, db)
+    )
     subprocess.run(set_county_command, shell=True)
     load_county_command = (
         'echo "COPY voters_voter (lname, fname, mname, suffix, addr1, addr2, '
-        'city, zipcode, gender, race, birthdate, party, areacode, phone, email, '
-        'exemption_requested, registration_date, active, voter_id) '  
-        'FROM \'{}/{}.csv\' CSV HEADER;" | psql {}'.format(
-            LOADBASE, slug, db))
+        "city, zipcode, gender, race, birthdate, party, areacode, phone, email, "
+        "exemption_requested, registration_date, active, voter_id) "
+        f"FROM '{LOADBASE}/{slug}.csv' CSV HEADER;\" | psql {db}"
+    )
     subprocess.run(load_county_command, shell=True)
 
 
@@ -446,20 +450,25 @@ def export_county(countyfile):
         dataset = {
             "name": name,
             "description": "Data from {}".format(VOTER_DATA_DATE),
-            "categories": ["/api/1.0/category/all-dob/",
-                           "/api/1.0/category/voters/"]
+            "categories": [
+                "/api/1.0/category/all-dob/",
+                "/api/1.0/category/voters/",
+            ],
         }
         panda_put(
             dataset_url,
             json.dumps(dataset),
-            params={"columns": ",".join(VOTER_COLUMNS)})
+            params={"columns": ",".join(VOTER_COLUMNS)},
+        )
         with open("{}/{}".format(LOADBASE, countyfile), "r") as cfile:
             reader = csv.DictReader(cfile)
             for row in reader:
-                put_data["objects"].append({
-                    "external_id": (row["voter_ID"]),
-                    "data": [row[key] for key in VOTER_COLUMNS]
-                })
+                put_data["objects"].append(
+                    {
+                        "external_id": (row["voter_ID"]),
+                        "data": [row[key] for key in VOTER_COLUMNS],
+                    }
+                )
                 if len(put_data["objects"]) % 500 == 0:
                     print("500 processed")
                 if len(put_data["objects"]) == 1000:
@@ -474,8 +483,11 @@ def export_county(countyfile):
             panda_put(data_url, json.dumps(put_data), params={})
             putcount += len(put_data["objects"])
             put_data["objects"] = []
-        print("pushed {} rows to panda dataset {}; process took {}".format(
-            putcount, name, (datetime.datetime.now() - putstart)))
+        print(
+            "pushed {} rows to panda dataset {}; process took {}".format(
+                putcount, name, (datetime.datetime.now() - putstart)
+            )
+        )
         return putcount
 
 
@@ -488,7 +500,8 @@ def export_to_panda():
 if __name__ == "__main__":
     print(
         f"{SCRIPT_NAME} reporting for duty, "
-        f"with voter data date of {VOTER_DATA_DATE}")
+        f"with voter data date of {VOTER_DATA_DATE}"
+    )
     if len(sys.argv) == 2:
         if sys.argv[1] == "prep_files":
             prep_files()
@@ -500,8 +513,10 @@ if __name__ == "__main__":
             purge_directories()
         else:
             voter_file = sys.argv[1]
-            print("Prepping voter data for {} County".format(
-                FL_COUNTIES.get(voter_file[:3]))
+            print(
+                "Prepping voter data for {} County".format(
+                    FL_COUNTIES.get(voter_file[:3])
+                )
             )
             prep(voter_file)
     else:
