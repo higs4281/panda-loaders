@@ -37,21 +37,23 @@ PANDA_VOTERS_SUFFIX = "&category=voters"
 
 # FILE SYSTEM VARS
 BASE = os.getenv("PANDA_LOADERS_BASE_DIR", "/tmp")
-YEARBASE = "{}/{}".format(BASE, YEAR)
-RAWBASE = "{}/VoterDetail".format(YEARBASE)
-TEMP = "{}/temp".format(YEARBASE)
-PREPBASE = "{}/prep".format(YEARBASE)
-LOADBASE = "{}/load".format(YEARBASE)
-LOADED = "{}/loaded".format(YEARBASE)
-WORKING_DIRS = [LOADBASE, LOADED, RAWBASE, PREPBASE, TEMP, YEARBASE]
-PROCESSING_DIRS = [PREPBASE, TEMP]
+YEARBASE = f"{BASE}/{YEAR}"
+RAWBASE = f"{YEARBASE}/VoterDetail"
+TEMP = f"{YEARBASE}/temp"
+PREPBASE = f"{YEARBASE}/prep"
+LOADBASE = f"{YEARBASE}/load"
+LOADED = f"{YEARBASE}/loaded"
+WORKING_DIRS = [RAWBASE, LOADBASE, LOADED, PREPBASE, TEMP]
+PROCESSING_DIRS = WORKING_DIRS[1:]
 
 
 def get_postgres_db_name():
     return f"voter_data_{VOTER_DATA_DATE_STRING.replace('-', '')}"
 
 
-def purge_processing_directories(dirs=PROCESSING_DIRS):
+def purge_directories(dirs=None):
+    if not dirs:
+        dirs = WORKING_DIRS
     for directory in dirs:
         if len(os.listdir(directory)) > 0:
             subprocess.run(f"rm {directory}/*", shell=True)
@@ -59,10 +61,10 @@ def purge_processing_directories(dirs=PROCESSING_DIRS):
 
 def prep_directories():
     """Make sure working directories exist and processing dirs are empty."""
-    for each in [YEARBASE, RAWBASE, TEMP, PREPBASE, LOADBASE, LOADED]:
+    for each in [YEARBASE] + WORKING_DIRS:
         if not os.path.isdir(each):
             os.mkdir(each)
-    purge_processing_directories()
+    purge_directories(dirs=PROCESSING_DIRS)
 
 
 def panda_get(url, params):
@@ -394,7 +396,7 @@ def prep_files():
         slug = each[:3]
         print(f"{i + 1}: Prepping voter data for {FL_COUNTIES.get(slug)}")
         prep(each)
-    purge_processing_directories()
+    purge_directories()
 
 
 def load_to_postgres():
@@ -495,7 +497,7 @@ if __name__ == "__main__":
         elif sys.argv[1] == "export_to_panda":
             export_to_panda()
         elif sys.argv[1] == "purge":
-            purge_processing_directories(dirs=WORKING_DIRS[:-1])
+            purge_directories()
         else:
             voter_file = sys.argv[1]
             print("Prepping voter data for {} County".format(
@@ -508,6 +510,6 @@ if __name__ == "__main__":
             "or one of these arguments: \n"
             "• prep_files (to prep any county files in /VoterDetail)\n"
             "• load_to_postgres (to create and load a database)\n"
-            "• purge (to clear voter files from all working directories)\n"
+            "• purge (to clear voter files from prep directories)\n"
             "• export_to_panda (to export any prepped county files to PANDA)."
         )
