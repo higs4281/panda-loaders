@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import csv
 import datetime
+import glob
 import json
 import os
+import os.path
 import subprocess
 import sys
 
@@ -51,12 +53,17 @@ def get_postgres_db_name():
     return f"voter_data_{VOTER_DATA_DATE_STRING.replace('-', '')}"
 
 
+def empty_directory(path):
+    for i in glob.glob(os.path.join(path, '*')):
+        os.remove(i)
+
+
 def purge_directories(dirs=None):
     if not dirs:
         dirs = WORKING_DIRS
     for directory in dirs:
         if len(os.listdir(directory)) > 0:
-            subprocess.run(f"rm {directory}/*", shell=True)
+            empty_directory(directory)
 
 
 def prep_directories():
