@@ -144,24 +144,28 @@ _RACE = {
     "7": "Multiracial",
     "9": "Unknown",  # yes, there is no 8
 }
-_PARTY = {  # Codes for parties registered in Florida as of March 2023
+_PARTY = {  # Codes for parties registered in Florida as of Jan 2025
+    "ASP": "American Solidarity",  # effective July 2024
     "BPP": "Boricua",
     "CPP": "Coalition With a Purpose",
     "CPF": "Constitution",
     "CSV": "Conservative",
     "DEM": "Democratic",
     "ECO": "Ecology",
-    "FFP": "Florida",
+    "FFP": "Florida Forward",
     "GRE": "Green",
     "IND": "Independent",
+    "JEF": "Jeffersonian",
     "LPF": "Libertarian",
+    "NAT": "Florida Natural Law",
     "NPA": "no party",
     "PSL": "Socialism and Liberation",
-    "REF": "Reform",
+    "RFM": "Reform",
     "REP": "Republican",
     "UPF": "Unity",
     "PEO": "People’s",
     # deprecated abbreviations, kept for parsing older files
+    "REF": "Reform",
     "AIP": "American's",
     "FPP": "Pirate",
     "FSW": "Socialist Workers",
