@@ -104,12 +104,16 @@ def panda_delete(url, params):
 
 
 HISTORY_CODES = {
-    "A": "Voted by mail",
-    "B": "Voted by mail, ballot not counted",
-    "E": "Voted early",
-    "N": "Did not vote",
-    "P": "Provisional ballot not counted",
-    "Y": "Voted at polls",
+    "A": "Voted by Mail",
+    "B": "Vote-by-Mail Ballot Not Counted",
+    "E": "Voted Early",
+    "L": "Vote-by-Mail Ballot Not Counted, Received Late",
+    "N": (
+        "Did Not Vote (not all counties use this code "
+        "nor are required to report this data)"
+    ),
+    "P": "Provisional Ballot Not Counted",
+    "Y": "Voted at Polls",
 }
 
 VOTER_COLUMNS = [
@@ -142,7 +146,7 @@ _RACE = {
     "5": "WH",  # using WH so searches for people named "White" will work
     "6": "Other",
     "7": "Multiracial",
-    "9": "Unknown",  # yes, there is no 8
+    "9": "Unknown",  # yes, there is no code 8
 }
 _PARTY = {  # Codes for parties registered in Florida as of Jan 2025
     "ASP": "American Solidarity",  # effective July 2024
@@ -157,6 +161,7 @@ _PARTY = {  # Codes for parties registered in Florida as of Jan 2025
     "IND": "Independent",
     "JEF": "Jeffersonian",
     "LPF": "Libertarian",
+    "MGT": "MGTOW",
     "NAT": "Florida Natural Law",
     "NPA": "no party",
     "PSL": "Socialism and Liberation",
