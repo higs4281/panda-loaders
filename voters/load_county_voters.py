@@ -148,7 +148,8 @@ _RACE = {
     "7": "Multiracial",
     "9": "Unknown",  # yes, there is no code 8
 }
-_PARTY = {  # Codes for parties registered in Florida as of Jan 2025
+_PARTY = {  # Codes for parties registered in Florida as of June 2025
+    "AMF": "America First",  # new in June 2025
     "ASP": "American Solidarity",  # effective July 2024
     "BPP": "Boricua",
     "CPP": "Coalition With a Purpose",
@@ -161,7 +162,7 @@ _PARTY = {  # Codes for parties registered in Florida as of Jan 2025
     "IND": "Independent",
     "JEF": "Jeffersonian",
     "LPF": "Libertarian",
-    "MGT": "MGTOW",
+    "MGT": "MGTOW",  # Men Going Their Own Way, new in 2025
     "NAT": "Florida Natural Law",
     "NPA": "no party",
     "PSL": "Socialism and Liberation",
